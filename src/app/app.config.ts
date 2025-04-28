@@ -1,20 +1,19 @@
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import type { ApplicationConfig } from '@angular/core';
-import { NgZone, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
+import { AuthRepository } from '@core/repositories/auth.repository';
+import { authInterceptor } from '@infrastructure/interceptors/auth.interceptor';
+import { HttpAuthRepository } from '@infrastructure/repositories/http-auth.repository';
+
 import { routes } from './app.routes';
+import { authInitializer } from './bootstrap/auth.initializer';
 
 export const appConfig: ApplicationConfig = {
 	providers: [
-		provideZoneChangeDetection({ eventCoalescing: true }),
+		provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
 		provideRouter(routes),
-		{
-			provide: NgZone,
-			useFactory: () =>
-				new NgZone({
-					enableLongStackTrace: false,
-					shouldCoalesceEventChangeDetection: true,
-				}),
-		},
+		authInitializer,
+		{ provide: AuthRepository, useClass: HttpAuthRepository },
 	],
 };
